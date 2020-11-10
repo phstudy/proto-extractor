@@ -1,4 +1,4 @@
-﻿using Mono.Cecil;
+using Mono.Cecil;
 using protoextractor.decompiler.c_sharp;
 using protoextractor.IR;
 using System;
@@ -161,7 +161,7 @@ namespace protoextractor.analyzer.c_sharp
 					// Make a reference between the parent and this (private) enum.
 					_classCache[parent].PrivateTypes.Add(irEnum);
 				}
-				else if (nestedType.IsClass)
+				else if (nestedType.IsClass && !nestedType.Name.Equals("<>c"))
 				{
 					// This nested type might not be a decompilable class. This because it's not directly
 					// taken from ILDecompiler.MatchAnalyzableClasses(..).
@@ -339,18 +339,21 @@ namespace protoextractor.analyzer.c_sharp
 				// That's why the object's referencedList was emptied..
 				foreach (var refType in refTypes)
 				{
-					if (refType.IsEnum)
-					{
-						DecompileEnum(refType);
-					}
-					else if (refType.IsClass)
-					{
-						DecompileClass(refType);
-					}
-					else
-					{
-						throw new Exception("Cannot handle this kind of reference!");
-					}
+                    if (refType.FullName.StartsWith("Serverproto") )
+                    {
+                        if (refType.IsEnum)
+                        {
+                            DecompileEnum(refType);
+                        }
+                        else if (refType.IsClass)
+                        {
+                            DecompileClass(refType);
+                        }
+                        else
+                        {
+                            throw new Exception("Cannot handle this kind of reference!");
+                        }
+                    }
 				}
 
 			}

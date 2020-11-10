@@ -276,7 +276,7 @@ namespace protoextractor.decompiler.c_sharp
 				if (hasLower)
 				{
 					// Convert PascalCase to UPPER_SNAKE.
-					propName = propName.PascalToSnake();
+					propName = propName.PascalToSnake().ToUpper();
 				}
 
 				// Add a new property to the list for this enum field

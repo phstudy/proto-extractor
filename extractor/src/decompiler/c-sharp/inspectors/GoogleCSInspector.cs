@@ -1,4 +1,4 @@
-﻿using Mono.Cecil;
+using Mono.Cecil;
 using protoextractor.IR;
 using System;
 using System.Collections.Generic;
@@ -222,18 +222,22 @@ namespace protoextractor.decompiler.c_sharp.inspectors
 
 				// Fetch the fieldNumber for this property.
 				var tag = ExtractFieldNumber(_subjectClass, property.Name);
-				// Add it to the options.
-				opts.PropertyOrder = tag;
 
-				// Construct the IR property and store it.
-				var prop = new IRClassProperty()
-				{
-					Name = property.Name,
-					Type = propType,
-					ReferencedType = irReference,
-					Options = opts,
-				};
-				properties.Add(prop);
+                if (tag != -1)
+                {
+                    // Add it to the options.
+                    opts.PropertyOrder = tag;
+
+                    // Construct the IR property and store it.                    
+                    var prop = new IRClassProperty()
+                    {
+                        Name = property.Name,
+                        Type = propType,
+                        ReferencedType = irReference,
+                        Options = opts,
+                    };
+                    properties.Add(prop);                    
+                }
 			}
 
 			return properties;
@@ -244,8 +248,15 @@ namespace protoextractor.decompiler.c_sharp.inspectors
 			// The fieldnumber can be found as a public constant value in the subject.
 			// The constant is named after the property+ "FieldNumber".
 			var tagFieldName = propertyName + "FieldNumber";
-			// Search for the field.
-			var constTagField = subject.Fields.First(f => f.Name.Equals(tagFieldName));
+            // Search for the field.
+            //var constTagField = subject.Fields.First(f => f.Name.Equals(tagFieldName));
+            var constTagField = subject.Fields.FirstOrDefault(f => tagFieldName.Equals(f.Name));
+
+            if (constTagField == null)
+            {
+                return -1;
+            }
+             
 			// Get the value of the field.
 			var tag = (int)constTagField.Constant;
 			return tag;
