@@ -7,11 +7,37 @@ using protoextractor.util;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using protoextractor.IR;
 
 namespace protoextractor
 {
     class Program
     {
+        static string toFlatcType(PropertyTypeKind type)
+        {
+            switch (type)
+            {
+                case PropertyTypeKind.BYTE:
+                    return "byte";
+                case PropertyTypeKind.UBYTE:
+                    return "ubyte";
+                case PropertyTypeKind.INT16:
+                    return "short";
+                case PropertyTypeKind.UINT16:
+                    return "ushort";
+                case PropertyTypeKind.INT32:
+                    return "int";
+                case PropertyTypeKind.UINT32:
+                    return "uint";
+                case PropertyTypeKind.INT64:
+                    return "long";
+                case PropertyTypeKind.UINT64:
+                    return "ulong";
+
+            }
+
+            return type.ToString().ToLower();
+        }
         public static Logger Log;
 
         static int Main(string[] args)
@@ -101,6 +127,70 @@ namespace protoextractor
                 Log.Exception("Exception occurred while processing!", e);
                 Environment.Exit(-8);
             }
+
+            IRNamespace irNamespace = program.Namespaces[0];
+            Console.WriteLine("namespace " + irNamespace.OriginalName + ";");
+            Console.WriteLine();
+
+            for (int i = irNamespace.Enums.Count - 1; i >= 0 ; i--) {
+                IREnum irEnum = irNamespace.Enums[i];
+                // Console.WriteLine("enum " + irEnum.ShortName + ":" + irEnum.Properties[0].Value.GetType().ToString().ToLower() +  " {");
+                Console.WriteLine("enum " + irEnum.ShortName + ":" + toFlatcType(irEnum.Properties[0].Type) + " {");
+
+                for (int j = 0; j < irEnum.Properties.Count; j++)
+                {
+                    if (j > 0) {
+                        Console.WriteLine(",");
+                    }
+                    Console.Write("    " + irEnum.Properties[j].Name);
+                }
+                Console.WriteLine();
+                Console.WriteLine("}");
+                Console.WriteLine();
+            }
+
+            for (int i = irNamespace.Classes.Count - 1; i >= 0; i--) {
+                IRClass irClass = irNamespace.Classes[i];
+                Console.WriteLine("table " + irClass.ShortName + " {");
+
+                for (int j = 0; j < irClass.Properties.Count; j++)
+                {
+                    string type;
+                    if (irClass.Properties[j].Type == PropertyTypeKind.TYPE_REF)
+                    {
+                        type = irClass.Properties[j].ReferencedType.ShortName;
+
+                        if (irClass.Properties[j].ReferencedType.FullName.StartsWith("System"))
+                        {
+                            type = type.ToLower();
+                        }
+                        if (type.Equals("sbyte"))
+                        {
+                            type = "byte";
+                        }
+                        if (type.Equals("byte"))
+                        {
+                            type = "ubyte";
+                        }
+                    }
+                    else
+                    {
+                        type = toFlatcType(irClass.Properties[j].Type);
+                    }
+                    if (irClass.Properties[j].Options.Label == FieldLabel.REPEATED)
+                    {
+                        type = "[" + type + "]";
+                    }
+
+                    string name = Char.ToLowerInvariant(irClass.Properties[j].Name[0]) +
+                           irClass.Properties[j].Name.Substring(1);
+                    Console.WriteLine("    " + name + ":" + type + ";");
+                }
+                Console.WriteLine("}");
+                Console.WriteLine();
+            }
+
+            Console.Write("root_type " + irNamespace.Classes[0].ShortName + ";");
 
             // Setup compiler
             DefaultProtoCompiler compiler = null;

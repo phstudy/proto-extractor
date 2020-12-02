@@ -189,7 +189,7 @@ namespace protoextractor.decompiler.c_sharp.inspectors
                 {
                     property.Name = property.Name.Replace("Length", "");
                     MethodDefinition definition = _subjectClass.Methods.First(method => method.Name.Equals(property.Name));
-                    if(definition.ReturnType.IsGenericInstance)
+                    if (definition.ReturnType.IsGenericInstance)
                     {
                         property.PropertyType = ((GenericInstanceType) definition.ReturnType).GenericArguments[0];
                     }
@@ -231,7 +231,7 @@ namespace protoextractor.decompiler.c_sharp.inspectors
                     // Construct the IR property and store it.
                     var prop = new IRClassProperty()
                     {
-                        Name = property.Name.Replace("Length", ""),
+                        Name = property.Name,
                         Type = propType,
                         ReferencedType = irReference,
                         Options = opts,

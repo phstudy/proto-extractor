@@ -373,16 +373,18 @@ namespace protoextractor.analyzer.c_sharp
 				// The value is an IRClass, loop it's properties..
 				foreach (var prop in kv.Value.Properties)
 				{
-					if (prop.Type == PropertyTypeKind.TYPE_REF)
-					{
-						// Find the actual IR type by the fullName of the placeholder.
-						// All (valid) analyzed types MUST BE FOUND inside the cache.
-						var referenceName = prop.ReferencedType.FullName;
-						var irReference = FindReference(referenceName);
-						// Overwrite the reference with the actaul object.
-						prop.ReferencedType = irReference;
-					}
-				}
+                    if (prop.Type == PropertyTypeKind.TYPE_REF)
+                    {
+                        // Find the actual IR type by the fullName of the placeholder.
+                        // All (valid) analyzed types MUST BE FOUND inside the cache.
+                        var referenceName = prop.ReferencedType.FullName;
+                        var irReference = FindReference(referenceName);
+                        // Overwrite the reference with the actaul object.
+                        if (irReference != null) {
+                            prop.ReferencedType = irReference;
+                        }
+                    }
+                }
 			}
 		}
 

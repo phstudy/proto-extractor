@@ -253,7 +253,8 @@ namespace protoextractor.IR
 	{
 		public string Name;
 		public int Value;
-	}
+        public PropertyTypeKind Type;
+    }
 
 	// DO NOT CHANGE THE ORDER OF THE PROPERTIES!
 	public enum PropertyTypeKind
@@ -262,9 +263,12 @@ namespace protoextractor.IR
 		DOUBLE,
 		FLOAT,
 
-		INT32,
+        INT16,
+        INT32,
 		INT64,
-		UINT32,
+
+        UINT16,
+        UINT32,
 		UINT64,
 		SINT32,
 		SINT64,
@@ -274,7 +278,10 @@ namespace protoextractor.IR
 		SFIXED32,
 		SFIXED64,
 
-		BOOL,
+        BYTE,
+        UBYTE,
+
+        BOOL,
 		STRING,
 		BYTES,
 		// Reference to other type

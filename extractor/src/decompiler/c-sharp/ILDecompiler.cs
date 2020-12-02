@@ -218,11 +218,11 @@ namespace protoextractor.decompiler.c_sharp
             // var serialize = serializeEnumeration.First();
 
             // Handler for serialize oncall action.
-            Action<CallInfo, List<byte>> googleSerializeOnCall = (CallInfo info, List<byte> w) =>
-            {
-                // Just chain the call.
-                GoogleCSInspector.SerializeOnCall(info, w, props);
-            };
+            // Action<CallInfo, List<byte>> googleSerializeOnCall = (CallInfo info, List<byte> w) =>
+            // {
+            //     // Just chain the call.
+            //     GoogleFBSInspector.SerializeOnCall(info, w, props);
+            // };
 
             // Walk serialize method.
             // MethodWalker.WalkMethod(serialize, googleSerializeOnCall, null);
@@ -234,14 +234,30 @@ namespace protoextractor.decompiler.c_sharp
 			// Get the underlying type of the enum
 			var enumUnderLyingType = PropertyTypeKind.UNKNOWN;
 			var enumMagicVal = _subject.Fields.First(x => x.Name.Equals("value__"));
-			if (enumMagicVal.FieldType.FullName.EndsWith("Int16") || enumMagicVal.FieldType.FullName.EndsWith("Int32") || enumMagicVal.FieldType.FullName.EndsWith("SByte"))
+			if (enumMagicVal.FieldType.FullName.EndsWith("Int16"))
 			{
-				enumUnderLyingType = PropertyTypeKind.INT32;
+				enumUnderLyingType = PropertyTypeKind.INT16;
 			}
-			else if (enumMagicVal.FieldType.FullName.EndsWith("UInt16") || enumMagicVal.FieldType.FullName.EndsWith("UInt32") || enumMagicVal.FieldType.FullName.EndsWith("Byte"))
+            else if (enumMagicVal.FieldType.FullName.EndsWith("Int32"))
+            {
+                enumUnderLyingType = PropertyTypeKind.INT32;
+            }
+			else if (enumMagicVal.FieldType.FullName.EndsWith("UInt16"))
 			{
-				enumUnderLyingType = PropertyTypeKind.UINT32;
+				enumUnderLyingType = PropertyTypeKind.UINT16;
 			}
+            else if (enumMagicVal.FieldType.FullName.EndsWith("UInt32"))
+            {
+                enumUnderLyingType = PropertyTypeKind.UINT32;
+            }
+            else if (enumMagicVal.FieldType.FullName.EndsWith("SByte"))
+            {
+                enumUnderLyingType = PropertyTypeKind.BYTE;
+            }
+            else if (enumMagicVal.FieldType.FullName.EndsWith("Byte"))
+            {
+                enumUnderLyingType = PropertyTypeKind.UBYTE;
+            }
 			else
 			{
 				// WARN: The underlying type is unknown!
@@ -259,11 +275,11 @@ namespace protoextractor.decompiler.c_sharp
 
 				// Convert the constant value to int
 				int? enumValue = null;
-				if (enumUnderLyingType == PropertyTypeKind.INT32)
+				if (enumUnderLyingType == PropertyTypeKind.INT32 || enumUnderLyingType == PropertyTypeKind.INT16 ||  enumUnderLyingType == PropertyTypeKind.BYTE)
 				{
 					enumValue = Convert.ToInt32(field.Constant);
 				}
-				else if (enumUnderLyingType == PropertyTypeKind.UINT32)
+                if (enumUnderLyingType == PropertyTypeKind.UINT32 || enumUnderLyingType == PropertyTypeKind.UINT16 ||  enumUnderLyingType == PropertyTypeKind.UBYTE)
 				{
 					enumValue = Convert.ToInt32(Convert.ToUInt32(field.Constant));
 				}
@@ -283,7 +299,8 @@ namespace protoextractor.decompiler.c_sharp
 					// Straight name copy
 					Name = propName,
 					// If the enumValue is NOT NULL, use enum value.. else use the integer 0
-					Value = (enumValue ?? 0)
+					Value = (enumValue ?? 0),
+                    Type = enumUnderLyingType
 				});
 			}
 

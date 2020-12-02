@@ -69,12 +69,18 @@ namespace protoextractor.decompiler.c_sharp
 			PropertyTypeKind fieldType;
 			switch (type)
 			{
+                case "Int16":
+                    fieldType = PropertyTypeKind.INT16;
+                    break;
 				case "Int32":
 					fieldType = PropertyTypeKind.INT32;
 					break;
 				case "Int64":
 					fieldType = PropertyTypeKind.INT64;
 					break;
+                case "UInt16":
+                    fieldType = PropertyTypeKind.UINT16;
+                    break;
 				case "UInt32":
 					fieldType = PropertyTypeKind.UINT32;
 					break;
@@ -103,6 +109,12 @@ namespace protoextractor.decompiler.c_sharp
 				case "Bool":
 					fieldType = PropertyTypeKind.BOOL;
 					break;
+                case "Byte":
+                    fieldType = PropertyTypeKind.UBYTE;
+                    break;
+                case "SByte":
+                    fieldType = PropertyTypeKind.BYTE;
+                    break;
 				case "String":
 					fieldType = PropertyTypeKind.STRING;
 					break;
