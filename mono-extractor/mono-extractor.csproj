@@ -81,8 +81,8 @@
     <Compile Include="..\extractor\src\decompiler\c-sharp\inspectors\GoogleCSInspector.cs">
       <Link>src\decompiler\c-sharp\inspectors\GoogleCSInspector.cs</Link>
     </Compile>
-    <Compile Include="..\extractor\src\decompiler\c-sharp\inspectors\SilentOrbitInspector.cs">
-      <Link>src\decompiler\c-sharp\inspectors\SilentOrbitInspector.cs</Link>
+    <Compile Include="..\extractor\src\decompiler\c-sharp\inspectors\GoogleFBSInspector.cs">
+      <Link>src\decompiler\c-sharp\inspectors\GoogleFBSInspector.cs</Link>
     </Compile>
     <Compile Include="..\extractor\src\decompiler\c-sharp\inspectors\GoogleV1Inspector.cs">
       <Link>src\decompiler\c-sharp\inspectors\GoogleV1Inspector.cs</Link>

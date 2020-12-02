@@ -9,6 +9,7 @@ src/ProgramTest.cs
 .vs/
 .env/
 .vscode/
+.idea/
 proto-extractor.csproj.user
 extractor/Properties/
 extractor/src/ProgramTest.cs

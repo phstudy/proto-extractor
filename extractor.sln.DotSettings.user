@@ -1,0 +1,6 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:Boolean x:Key="/Default/AddReferences/RecentPaths/=_002FUsers_002Fstudy_002FResilio_0020Sync_002Fcode_005Fmbpr_002Fdsa_005Fproto_005Fdumper_002Fproto_002Dextractor_002Fmono_002Dextractor_002Flib_002Fmscorlib_002Edll/@EntryIndexedValue">True</s:Boolean>
+	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;
+  &lt;Assembly Path="/Library/Frameworks/Mono.framework/Versions/6.12.0/lib/mono/4.7.2-api/System.Core.dll" /&gt;
+  &lt;Assembly Path="/usr/local/share/dotnet/packs/Microsoft.NETCore.App.Ref/3.1.0/ref/netcoreapp3.1/mscorlib.dll" /&gt;
+&lt;/AssemblyExplorer&gt;</s:String></wpf:ResourceDictionary>

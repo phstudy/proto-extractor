@@ -186,6 +186,10 @@ namespace protoextractor.processing
                             // The parent namespace of the referenced type.
                             // This must be resolved recursively! Future requests for the namespace
                             // of a type should be done through '_TypeNSMapper'.
+                            if (refType == null || refType.Parent == null) // TODO: Gamedata.TutorialBattle.Map
+                            {
+                                continue;
+                            }
                             var refParent = refType.Parent;
                             while (!(refParent is IRNamespace))
                             {

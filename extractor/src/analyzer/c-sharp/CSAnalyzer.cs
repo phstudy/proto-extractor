@@ -70,6 +70,10 @@ namespace protoextractor.analyzer.c_sharp
 			// Decompile all types.
 			foreach (var type in types)
 			{
+                if (!type.Name.Equals("StaticGamedata"))
+                {
+                    continue;
+                }
 				// Decompile the type to IR, see DecompileClass(..).
 				if (type.IsEnum)
 				{
@@ -339,7 +343,7 @@ namespace protoextractor.analyzer.c_sharp
 				// That's why the object's referencedList was emptied..
 				foreach (var refType in refTypes)
 				{
-                    if (refType.FullName.StartsWith("Serverproto") )
+                    if (refType.FullName.StartsWith("Gamedata") )
                     {
                         if (refType.IsEnum)
                         {

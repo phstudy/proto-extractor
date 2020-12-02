@@ -34,14 +34,7 @@ namespace protoextractor.decompiler.c_sharp
 		// class. Eg: All classes that have the interface IProtoBuf!
 		public static bool MatchDecompilableClasses(TypeDefinition t)
 		{
-			return
-				// Validate SilentOrbit.
-				SilentOrbitInspector.MatchDecompilableClasses(t) ||
-				// Validate GoogleProtobuffer.
-				GoogleCSInspector.MatchDecompilableClasses(t) ||
-				// Validates GoogleProtobuffer V1.
-				GoogleV1Inspector.MatchDecompilableClasses(t)
-				;
+			return GoogleFBSInspector.MatchDecompilableClasses(t);
 		}
 
 		public override IRClass ConstructIRClass()
@@ -78,13 +71,7 @@ namespace protoextractor.decompiler.c_sharp
 				};
 				_constructedSubject = irClass;
 
-				// Test for SilentOrbit decompilation.
-				if (SilentOrbitInspector.MatchDecompilableClasses(_subject))
-				{
-					DecompileClass_SilentOrbit(irClass, out references);
-				}
-				// Test for Google Protobuffer V1 decompilation.
-				else if (GoogleV1Inspector.MatchDecompilableClasses(_subject))
+                if (GoogleV1Inspector.MatchDecompilableClasses(_subject))
 				{
 					DecompileClass_GoogleV1(irClass, out references);
 				}
@@ -93,6 +80,11 @@ namespace protoextractor.decompiler.c_sharp
 				{
 					DecompileClass_Google(irClass, out references);
 				}
+                // Test for Google flatbuffer decompilation.
+                else if (GoogleFBSInspector.MatchDecompilableClasses(_subject))
+                {
+                    DecompileClass_GoogleFBS(irClass, out references);
+                }
 				// Else fail..
 				else
 				{
@@ -100,47 +92,6 @@ namespace protoextractor.decompiler.c_sharp
 				}
 
 			}
-		}
-
-		private void DecompileClass_SilentOrbit(IRClass target, out List<TypeDefinition> references)
-		{
-			// Fetch the properties of the type...
-			// (At the same time, all references of this class are being collected.)
-			var props = SilentOrbitInspector.ExtractClassProperties(_subject, out references);
-			// and store the properties.
-			target.Properties = props;
-
-			// Extract necessary methods for decompilation
-			var serializeEnum = _subject.Methods.Where(SilentOrbitInspector.MatchSerializeMethod);
-			var deserializeEnum = _subject.Methods.Where(SilentOrbitInspector.MatchDeserializeMethod);
-			if (!serializeEnum.Any() || !deserializeEnum.Any())
-			{
-				throw new ExtractionException("No serialize or deserialize methods found!");
-			}
-			MethodDefinition serialize = serializeEnum.First();
-			MethodDefinition deserialize = deserializeEnum.First();
-
-			// Create a handler for the serialize OnCall action.
-			Action<CallInfo, List<byte>> silentOrbitSerializeCallHandler = (CallInfo info,
-					List<byte> w) =>
-			{
-				// Just chain the call.
-				// Property information is updated in place!
-				SilentOrbitInspector.SerializeOnCall(info, w, props);
-			};
-			// Walk the serialize method for additional information.
-			MethodWalker.WalkMethod(serialize, silentOrbitSerializeCallHandler, null);
-
-			// Create handler for deserialize oncall action.
-			Action<CallInfo, List<byte>> silentOrbitDeserializeCallHandler = (CallInfo info,
-					List<byte> w) =>
-			{
-				// Just chain the call.
-				// Property information is updated in place!
-				SilentOrbitInspector.DeserializeOnCall(info, w, props);
-			};
-			// Walk the deserialize method for additional information.
-			MethodWalker.WalkMethod(deserialize, silentOrbitDeserializeCallHandler, null);
 		}
 
 		private void DecompileClass_GoogleV1(IRClass target, out List<TypeDefinition> references)
@@ -230,17 +181,64 @@ namespace protoextractor.decompiler.c_sharp
 			MethodWalker.WalkMethod(serialize, googleSerializeOnCall, null);
 		}
 
+        private void DecompileClass_GoogleFBS(IRClass target, out List<TypeDefinition> references)
+        {
+            // Fetch properties of the type..
+            var props = GoogleFBSInspector.ExtractClassProperties(_subject, out references);
+            // Store properties.
+            target.Properties = props;
+
+            // Container of all parsed tags.
+            List<ulong> tags = new List<ulong>();
+            // var constructEnumeration = _subject.Methods.Where(GoogleCSInspector.MatchStaticConstructor);
+            // if (!constructEnumeration.Any())
+            // {
+            //     throw new ExtractionException("No static constructor found!");
+            // }
+            // var construct = constructEnumeration.First();
+            Action<CallInfo, List<byte>> cctorOnCall = (CallInfo c, List<byte> w) =>
+            {
+                GoogleCSInspector.StaticCctorOnCall(c, props, tags);
+            };
+            Action<StoreInfo, List<byte>> cctorOnStore = (StoreInfo s, List<byte> w) =>
+            {
+                GoogleCSInspector.StaticCctorOnStore(s, props, tags);
+            };
+            // Walk static constructor method.
+            // MethodWalker.WalkMethod(construct, cctorOnCall, cctorOnStore);
+
+            // Extract necesary methods for decompilation.
+            // var serializeEnumeration = _subject.Methods.Where(GoogleCSInspector.MatchSerializeMethod);
+            // if (!serializeEnumeration.Any())
+            // {
+            //     throw new ExtractionException("No serialize method found!");
+            // }
+
+            // Get serialize method.
+            // var serialize = serializeEnumeration.First();
+
+            // Handler for serialize oncall action.
+            Action<CallInfo, List<byte>> googleSerializeOnCall = (CallInfo info, List<byte> w) =>
+            {
+                // Just chain the call.
+                GoogleCSInspector.SerializeOnCall(info, w, props);
+            };
+
+            // Walk serialize method.
+            // MethodWalker.WalkMethod(serialize, googleSerializeOnCall, null);
+        }
+
 		// Construct IR property objects from enum fields
 		private void ExtractEnumProperties()
 		{
 			// Get the underlying type of the enum
 			var enumUnderLyingType = PropertyTypeKind.UNKNOWN;
 			var enumMagicVal = _subject.Fields.First(x => x.Name.Equals("value__"));
-			if (enumMagicVal.FieldType.FullName.EndsWith("Int32"))
+			if (enumMagicVal.FieldType.FullName.EndsWith("Int16") || enumMagicVal.FieldType.FullName.EndsWith("Int32") || enumMagicVal.FieldType.FullName.EndsWith("SByte"))
 			{
 				enumUnderLyingType = PropertyTypeKind.INT32;
 			}
-			else if (enumMagicVal.FieldType.FullName.EndsWith("UInt32"))
+			else if (enumMagicVal.FieldType.FullName.EndsWith("UInt16") || enumMagicVal.FieldType.FullName.EndsWith("UInt32") || enumMagicVal.FieldType.FullName.EndsWith("Byte"))
 			{
 				enumUnderLyingType = PropertyTypeKind.UINT32;
 			}
@@ -263,11 +261,11 @@ namespace protoextractor.decompiler.c_sharp
 				int? enumValue = null;
 				if (enumUnderLyingType == PropertyTypeKind.INT32)
 				{
-					enumValue = (int)field.Constant;
+					enumValue = Convert.ToInt32(field.Constant);
 				}
 				else if (enumUnderLyingType == PropertyTypeKind.UINT32)
 				{
-					enumValue = (int)(uint)field.Constant;
+					enumValue = Convert.ToInt32(Convert.ToUInt32(field.Constant));
 				}
 
 				// Unless the enum property is already UPPER_SNAKE, convert it to UPPER_SNAKE.
