@@ -128,30 +128,38 @@ namespace protoextractor
                 Environment.Exit(-8);
             }
 
+
+
             IRNamespace irNamespace = program.Namespaces[0];
-            Console.WriteLine("namespace " + irNamespace.OriginalName + ";");
-            Console.WriteLine();
+            String rootName = Char.ToLowerInvariant(irNamespace.OriginalName[0]) + irNamespace.OriginalName.Substring(1);
+            Directory.CreateDirectory(opts.OutDirectory +  rootName);
+            var dumpFileName = Path.Combine(opts.OutDirectory + rootName, rootName + ".fbs");
+            var dumpFileStream = File.Create(dumpFileName);
+            var textStream = new StreamWriter(dumpFileStream);
+
+            textStream.WriteLine("namespace " + rootName + ";");
+            textStream.WriteLine();
 
             for (int i = irNamespace.Enums.Count - 1; i >= 0 ; i--) {
                 IREnum irEnum = irNamespace.Enums[i];
                 // Console.WriteLine("enum " + irEnum.ShortName + ":" + irEnum.Properties[0].Value.GetType().ToString().ToLower() +  " {");
-                Console.WriteLine("enum " + irEnum.ShortName + ":" + toFlatcType(irEnum.Properties[0].Type) + " {");
+                textStream.WriteLine("enum " + irEnum.ShortName + ":" + toFlatcType(irEnum.Properties[0].Type) + " {");
 
                 for (int j = 0; j < irEnum.Properties.Count; j++)
                 {
                     if (j > 0) {
-                        Console.WriteLine(",");
+                        textStream.WriteLine(",");
                     }
-                    Console.Write("    " + irEnum.Properties[j].Name);
+                    textStream.Write("    " + irEnum.Properties[j].Name);
                 }
-                Console.WriteLine();
-                Console.WriteLine("}");
-                Console.WriteLine();
+                textStream.WriteLine();
+                textStream.WriteLine("}");
+                textStream.WriteLine();
             }
 
             for (int i = irNamespace.Classes.Count - 1; i >= 0; i--) {
                 IRClass irClass = irNamespace.Classes[i];
-                Console.WriteLine("table " + irClass.ShortName + " {");
+                textStream.WriteLine("table " + irClass.ShortName + " {");
 
                 for (int j = 0; j < irClass.Properties.Count; j++)
                 {
@@ -184,41 +192,50 @@ namespace protoextractor
 
                     string name = Char.ToLowerInvariant(irClass.Properties[j].Name[0]) +
                            irClass.Properties[j].Name.Substring(1);
-                    Console.WriteLine("    " + name + ":" + type + ";");
+                    if (j == 0 && (irClass.Properties[j].Name.EndsWith("Id") || irClass.Properties[j].Name.Equals("id")))
+                    {
+                        textStream.WriteLine("    " + name + ":" + type + " (key);");
+                    }
+                    else
+                    {
+                        textStream.WriteLine("    " + name + ":" + type + ";");
+                    }
                 }
-                Console.WriteLine("}");
-                Console.WriteLine();
+                textStream.WriteLine("}");
+                textStream.WriteLine();
             }
 
-            Console.Write("root_type " + irNamespace.Classes[0].ShortName + ";");
+            textStream.Write("root_type " + irNamespace.Classes[0].ShortName + ";");
+            textStream.Flush();
+            textStream.Close();
 
-            // Setup compiler
-            DefaultProtoCompiler compiler = null;
-            if (opts.Proto3Syntax == true)
-            {
-                compiler = new Proto3Compiler(program);
-            }
-            else
-            {
-                compiler = new Proto2Compiler(program);
-            }
-
-            if (!Directory.Exists(opts.OutDirectory))
-            {
-                // Generate full path for directory.
-                string fullDirPath = Path.GetFullPath(opts.OutDirectory);
-                // Create directory.
-                Directory.CreateDirectory(fullDirPath);
-                Log.Info("Created output directory: {0}", fullDirPath);
-                // Update options.
-                opts.OutDirectory = fullDirPath;
-
-            }
-            compiler.SetOutputPath(opts.OutDirectory);
-
-            // Write output
-            // All paths for created files are lowercased!
-            compiler.Compile();
+            // // Setup compiler
+            // DefaultProtoCompiler compiler = null;
+            // if (opts.Proto3Syntax == true)
+            // {
+            //     compiler = new Proto3Compiler(program);
+            // }
+            // else
+            // {
+            //     compiler = new Proto2Compiler(program);
+            // }
+            //
+            // if (!Directory.Exists(opts.OutDirectory))
+            // {
+            //     // Generate full path for directory.
+            //     string fullDirPath = Path.GetFullPath(opts.OutDirectory);
+            //     // Create directory.
+            //     Directory.CreateDirectory(fullDirPath);
+            //     Log.Info("Created output directory: {0}", fullDirPath);
+            //     // Update options.
+            //     opts.OutDirectory = fullDirPath;
+            //
+            // }
+            // compiler.SetOutputPath(opts.OutDirectory);
+            //
+            // // Write output
+            // // All paths for created files are lowercased!
+            // compiler.Compile();
 
             Log.Info("Finished extracting");
 
