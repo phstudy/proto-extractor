@@ -132,8 +132,8 @@ namespace protoextractor
 
             IRNamespace irNamespace = program.Namespaces[0];
             String rootName = Char.ToLowerInvariant(irNamespace.OriginalName[0]) + irNamespace.OriginalName.Substring(1);
-            Directory.CreateDirectory(opts.OutDirectory +  rootName);
-            var dumpFileName = Path.Combine(opts.OutDirectory + rootName, rootName + ".fbs");
+            Directory.CreateDirectory(Path.Combine(opts.OutDirectory, rootName));
+            var dumpFileName = Path.Combine(opts.OutDirectory, rootName, rootName + ".fbs");
             var dumpFileStream = File.Create(dumpFileName);
             var textStream = new StreamWriter(dumpFileStream);
 
@@ -192,14 +192,14 @@ namespace protoextractor
 
                     string name = Char.ToLowerInvariant(irClass.Properties[j].Name[0]) +
                            irClass.Properties[j].Name.Substring(1);
-                    if (j == 0 && (irClass.Properties[j].Name.EndsWith("Id") || irClass.Properties[j].Name.Equals("id")))
-                    {
-                        textStream.WriteLine("    " + name + ":" + type + " (key);");
-                    }
-                    else
-                    {
+                    // if (j == 0 && (irClass.Properties[j].Name.EndsWith("Id") || irClass.Properties[j].Name.Equals("id")))
+                    // {
+                    //     textStream.WriteLine("    " + name + ":" + type + " (key);");
+                    // }
+                    // else
+                    // {
                         textStream.WriteLine("    " + name + ":" + type + ";");
-                    }
+                    // }
                 }
                 textStream.WriteLine("}");
                 textStream.WriteLine();
